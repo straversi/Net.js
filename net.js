@@ -1,29 +1,46 @@
 var width = $(window).width();
 var height = $(window).height();
 
-var diameter = 10;
-var nodeCount = 10;
+var diameter = 8;
+var nodeCount = 200;
 var nodeColor = "black";
-var destination = "net";
-var sensitivity = 40;
+var nodeDestination = "net";
+var sensitivity = 50;
+var maxDistance = 300;
 
-////////////////////////
+///////////////////////////////////////
+// Please be careful below this line //
+///////////////////////////////////////
 
 var radius = diameter / 2;
 var s = sensitivity;
+
+nodes = [];
+
+var timer = 0;
+setInterval(function() {timer += 5}, 500);
 
 function drawNodes(rangeX, rangeY, density, dest) {
     for (var i = 0; i < density; i++) {
         var x = Math.random() * (rangeX - 20) + 10;
         var y = Math.random() * (rangeY - 20) + 10;
-        var node = createNode(x, y);
+        var node = createNode(x, y, "node" + i);
         drawNode(node, dest);
     }
 }
 
-function createNode(x, y) {
+function createNode(x, y, id) {
+    var nodeObj = {
+        x: x,
+        y: y,
+        id: id,
+        edgesTo: [],
+        edgesFrom: []
+    }
+    nodes.push(nodeObj);
     var node = "";
     node += "<div class='node' " ;
+    node += "id='" + id + "' ";
     node += "data-x='" + x + "' ";
     node += "data-y='" + y + "' ";
     node += "style='height:" + diameter + "px;";
@@ -42,9 +59,7 @@ function drawNode(node, dest) {
     doc.innerHTML += node;
 }
 
-drawNode(createNode(0, 0), "net");
-
-$("#" + destination).mousemove(function(event) {
+$("#" + nodeDestination).mousemove(function(event) {
     var parentOffset = $(this).offset();
     var relX = event.pageX - parentOffset.left - radius;
     var relY = event.pageY - parentOffset.top - radius;
@@ -53,6 +68,20 @@ $("#" + destination).mousemove(function(event) {
         if (dist < s) {
             var newPoint = oppose(this.dataset.x, this.dataset.y, relX, relY);
             $(this).css({"left": newPoint.left, "top": newPoint.top});
+            var edgesFromArray = nodes[parseInt($(this).attr('id').slice(4))].edgesFrom;
+            for (var i = 0; i < edgesFromArray.length; i++) {
+                thisEdge = document.getElementById("svg" + edgesFromArray[i]);
+                thisEdge.setAttribute("x2", newPoint.left + radius);
+                thisEdge.setAttribute("y2", newPoint.top + radius);
+                // thisEdge.style.stroke = "rgb(" + (timer % 255) + "," + ((timer + 100) % 255) + "," + ((timer + 150) % 255) + ")";
+            }
+            var edgesToArray = nodes[parseInt($(this).attr('id').slice(4))].edgesTo;
+            for (var i = 0; i < edgesToArray.length; i++) {
+                thisEdge = document.getElementById("svg" + edgesToArray[i]);
+                thisEdge.setAttribute("x1", newPoint.left + radius);
+                thisEdge.setAttribute("y1", newPoint.top + radius);
+                // thisEdge.style.stroke = "rgb(" + (timer % 255) + "," + ((timer * 5) % 255) + "," + ((timer * 3) % 255) + ")";
+            }
         }
     })
 })
@@ -83,6 +112,37 @@ function oppose(refX, refY, mouseX, mouseY) {
     return { left: offsetX + parseFloat(refX), top: offsetY + parseFloat(refY) };
 }
 
-drawNodes(width, height, nodeCount, destination);
+drawNodes(width, height, nodeCount, nodeDestination);
 
+function drawEdges(maxDistance, dest) {
+    var i = 0;
+    $(".node").each(function() {
+        var source = $(this);
+        var sourceOffset = source.offset();
+        $(".node").each(function() {
+            var myOffset = $(this).offset();
+            if (distance(sourceOffset.left, sourceOffset.top, myOffset.left, myOffset.top) < maxDistance
+                && parseInt(source.attr('id').slice(4)) < parseInt($(this).attr('id').slice(4))) {
+                drawEdge(sourceOffset.left, sourceOffset.top, myOffset.left, myOffset.top, i, dest);
+                nodes[$(this).attr('id').slice(4)].edgesFrom.push(i);
+                nodes[source.attr('id').slice(4)].edgesTo.push(i);
+            }
+            i++;
+        })
+    })
+}
 
+function drawEdge(x0, y0, x1, y1, id) {
+    var svg = document.getElementsByTagName('svg')[0];
+    var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+    newElement.setAttribute("x1", x0 - radius);
+    newElement.setAttribute("y1", y0 - radius);
+    newElement.setAttribute("x2", x1 - radius);
+    newElement.setAttribute("y2", y1 - radius);
+    newElement.setAttribute("id", "svg" + id);
+    newElement.style.stroke = "rgb(255,0,0)";
+    newElement.style.strokeWidth = "2px";
+    svg.appendChild(newElement);
+}
+
+drawEdges(100);
