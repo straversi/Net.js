@@ -1,16 +1,22 @@
-var width = $(window).width();
-var height = $(window).height();
+// Net.js - A fun visual experiment
+// (c) Steven Traversi 2015
 
 var diameter = 8;
-var nodeCount = 200;
-var nodeColor = "black";
+var nodeCount = 100;
+var nodeColor = "#1B5E20";
 var nodeDestination = "net";
-var sensitivity = 50;
-var maxDistance = 300;
+var edgeColor = "#43A047";
+var sensitivity = 75;
+var maxDistance = 100;
+
+// Please name the svg element "#edges".
 
 ///////////////////////////////////////
 // Please be careful below this line //
 ///////////////////////////////////////
+
+var width = $("#" + nodeDestination).width();
+var height = $("#" + nodeDestination).height();
 
 var radius = diameter / 2;
 var s = sensitivity;
@@ -18,7 +24,7 @@ var s = sensitivity;
 nodes = [];
 
 var timer = 0;
-setInterval(function() {timer += 5}, 500);
+// setInterval(function() {timer += 5}, 500);
 
 function drawNodes(rangeX, rangeY, density, dest) {
     for (var i = 0; i < density; i++) {
@@ -59,7 +65,7 @@ function drawNode(node, dest) {
     doc.innerHTML += node;
 }
 
-$("#" + nodeDestination).mousemove(function(event) {
+$("#" + nodeDestination, "h1").mousemove(function(event) {
     var parentOffset = $(this).offset();
     var relX = event.pageX - parentOffset.left - radius;
     var relY = event.pageY - parentOffset.top - radius;
@@ -114,7 +120,8 @@ function oppose(refX, refY, mouseX, mouseY) {
 
 drawNodes(width, height, nodeCount, nodeDestination);
 
-function drawEdges(maxDistance, dest) {
+function drawEdges(maxDistance) {
+    var pO = $("#edges").offset();
     var i = 0;
     $(".node").each(function() {
         var source = $(this);
@@ -123,7 +130,10 @@ function drawEdges(maxDistance, dest) {
             var myOffset = $(this).offset();
             if (distance(sourceOffset.left, sourceOffset.top, myOffset.left, myOffset.top) < maxDistance
                 && parseInt(source.attr('id').slice(4)) < parseInt($(this).attr('id').slice(4))) {
-                drawEdge(sourceOffset.left, sourceOffset.top, myOffset.left, myOffset.top, i, dest);
+                drawEdge(sourceOffset.left - pO.left + radius,
+                    sourceOffset.top - pO.top + radius,
+                    myOffset.left - pO.left + radius,
+                    myOffset.top - pO.top + radius, i);
                 nodes[$(this).attr('id').slice(4)].edgesFrom.push(i);
                 nodes[source.attr('id').slice(4)].edgesTo.push(i);
             }
@@ -135,14 +145,29 @@ function drawEdges(maxDistance, dest) {
 function drawEdge(x0, y0, x1, y1, id) {
     var svg = document.getElementsByTagName('svg')[0];
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-    newElement.setAttribute("x1", x0 - radius);
-    newElement.setAttribute("y1", y0 - radius);
-    newElement.setAttribute("x2", x1 - radius);
-    newElement.setAttribute("y2", y1 - radius);
+    newElement.setAttribute("x1", x0);
+    newElement.setAttribute("y1", y0);
+    newElement.setAttribute("x2", x1);
+    newElement.setAttribute("y2", y1);
     newElement.setAttribute("id", "svg" + id);
-    newElement.style.stroke = "rgb(255,0,0)";
+    newElement.style.stroke = edgeColor;
     newElement.style.strokeWidth = "2px";
     svg.appendChild(newElement);
 }
 
-drawEdges(100);
+drawEdges(maxDistance);
+
+function clearAll() {
+    $("#edges").empty();
+    nodes = [];
+    $(".node").each(function() {
+        $(this).remove();
+    })
+}
+
+function drawDefaults() {
+    width = $("#" + nodeDestination).width();
+    height = $("#" + nodeDestination).height();
+    drawNodes(width, height, nodeCount, nodeDestination);
+    drawEdges(maxDistance);
+}
