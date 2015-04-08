@@ -6,7 +6,7 @@ var nodeCount = 100;
 var nodeColor = "#1B5E20";
 var nodeDestination = "net";
 var edgeColor = "#43A047";
-var sensitivity = 75;
+var sensitivity = 100;
 var maxDistance = 100;
 
 // Please name the svg element "#edges".
@@ -65,7 +65,7 @@ function drawNode(node, dest) {
     doc.innerHTML += node;
 }
 
-$("#" + nodeDestination, "h1").mousemove(function(event) {
+$("#" + nodeDestination).mousemove(function(event) {
     var parentOffset = $(this).offset();
     var relX = event.pageX - parentOffset.left - radius;
     var relY = event.pageY - parentOffset.top - radius;
@@ -109,8 +109,8 @@ function oppose(refX, refY, mouseX, mouseY) {
     var mYN = parseFloat(refY) - mouseY; // mouseY normalized
     var mXNS = Math.pow(mXN, 2);
     var mYNS = Math.pow(mYN, 2);
-    offsetX = -1 * Math.sqrt(-(s*2) * Math.sqrt(mXNS + mYNS) + mXNS + mYNS + Math.pow(s, 2)) / Math.sqrt(mYNS / mXNS + 1);
-    offsetY = -1 * mYN * Math.sqrt(-(s*2) * Math.sqrt(mXNS + mYNS) + mXNS + mYNS + Math.pow(s, 2)) / (mXN * Math.sqrt(mYNS / mXNS + 1));
+    offsetX = -1 * Math.sqrt(-(s*2) * Math.sqrt(mXNS + mYNS) + mXNS + mYNS + Math.pow(s, 2)) / (2 * Math.sqrt(mYNS / mXNS + 1));
+    offsetY = -1 * mYN * Math.sqrt(-(s*2) * Math.sqrt(mXNS + mYNS) + mXNS + mYNS + Math.pow(s, 2)) / (2 * mXN * Math.sqrt(mYNS / mXNS + 1));
     if (mXN > 0) {
         offsetY = -1 * offsetY;
         offsetX = -1 * offsetX;
